@@ -4,6 +4,8 @@ var lastPress = null;
 var dir = 0;
 var pause = true;
 var score = 0;
+var wall = new Array();
+var gameover = true;
 
 const KEY_LEFT = 37,
     KEY_UP = 38,
@@ -11,8 +13,18 @@ const KEY_LEFT = 37,
     KEY_DOWN = 40,
     KEY_ENTER = 13;
 
+function random(max) {
+    return Math.floor(Math.random() * max);
+}
+
 function act(){
+    var i = 0, l = 0;
     if(!pause){
+        // GameOver Reset
+        if (gameover) {
+            reset();
+        }
+
         // Change Direction
         if (lastPress == KEY_UP) {
             dir = 0;
@@ -39,7 +51,7 @@ function act(){
         if (dir == 3) {
             player.x -= 10;
         }
-        
+
         // Food Intersects
         if (player.intersects(food)) {
             score += 1;
@@ -60,6 +72,18 @@ function act(){
         if (player.y < 0) {
             player.y = canvas.height;
         }
+
+        // Wall Intersects
+        for (i = 0, l = wall.length; i < l; i += 1) {
+            if (food.intersects(wall[i])) {
+                food.x = random(canvas.width / 10 - 1) * 10;
+                food.y = random(canvas.height / 10 - 1) * 10;
+            }
+            if (player.intersects(wall[i])) {
+                gameover = true;
+                pause = true;
+            }
+        }
     }
 
     // Pause/Unpause
@@ -69,10 +93,29 @@ function act(){
     }
 }
 
+function reset() {
+    score = 0;
+    dir = 1;
+    player.x = 40;
+    player.y = 40;
+    food.x = random(canvas.width / 10 - 1) * 10;
+    food.y = random(canvas.height / 10 - 1) * 10;
+    gameover = false;
+}
+
 function paint(ctx) {
+    var i = 0, l = 0;
+
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Draw walls
+    ctx.fillStyle = '#999';
+    for (i = 0, l = wall.length; i < l; i += 1) {
+        wall[i].fill(ctx);
+    }
+
+    // Draw Player
     ctx.fillStyle = '#0f0';
     player.fill(ctx);
 
@@ -84,7 +127,11 @@ function paint(ctx) {
     ctx.fillStyle = '#fff';
     if (pause) {
         ctx.textAlign = 'center';
-        ctx.fillText('PAUSE', 150, 75);
+        if (gameover) {
+            ctx.fillText('GAME OVER', 150, 75);
+        } else {
+            ctx.fillText('PAUSE', 150, 75);
+        }
         ctx.textAlign = 'left';
     }
 
@@ -98,7 +145,7 @@ function repaint() {
 }
 
 function run() {
-    setTimeout(run, 50);
+    setTimeout(run, 100);
     act();
 }
 
@@ -108,7 +155,13 @@ function init() {
     // Create player
     player = new Rectangle(40, 40, 10, 10);
     player.fill(ctx);
+    // create food
     food = new Rectangle(80, 80, 10, 10);
+    // Create walls
+    wall.push(new Rectangle(100, 50, 10, 10));
+    wall.push(new Rectangle(100, 100, 10, 10));
+    wall.push(new Rectangle(200, 50, 10, 10));
+    wall.push(new Rectangle(200, 100, 10, 10));
     run();
     repaint();
 }
@@ -120,9 +173,6 @@ document.addEventListener('keydown', function (evt) {
     //evt.key
 }, false);
 
-function random(max) {
-    return Math.floor(Math.random() * max);
-}
 
 function Rectangle(x, y, width, height) {
     this.x = (x == null) ? 0 : x;
