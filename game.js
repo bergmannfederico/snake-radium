@@ -1,4 +1,3 @@
-/*jslint bitwise:true, es5: true */
 (function (window, undefined) {
     'use strict';
     var KEY_ENTER = 13,
@@ -39,12 +38,8 @@
         this.y = (y == null) ? 0 : y;
         this.width = (width == null) ? 0 : width;
         this.height = (height == null) ? this.width : height;
-    }
 
-    Rectangle.prototype = {
-        constructor: Rectangle,
-    
-        intersects: function (rect) {
+        this.intersects = function (rect) {
             if (rect == null) {
                 window.console.warn('Missing parameters on function intersects');
             } else {
@@ -53,32 +48,39 @@
                     this.y < rect.y + rect.height &&
                     this.y + this.height > rect.y);
             }
-        },
+        };
 
-        fill : function (ctx) {
+        this.fill = function (ctx) {
             if (ctx == null) {
                 window.console.warn('Missing parameters on function fill');
             } else {
                 ctx.fillRect(this.x, this.y, this.width, this.height);
             }
-        },
+        };
 
-        drawImage : function (ctx, img) {
-            if (img == undefined) {
+        this.drawImage = function (ctx, img) {
+            if (img == null) {
                 window.console.warn('Missing parameters on function drawImage');
             } else {
                 if (img.width) {
                     ctx.drawImage(img, this.x, this.y);
                 } else {
-                    ctx.strokeRect(this.x, this.y, this.width, this.height);
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
                 }
             }
-        }
-    };
-
+        };
+    }
 
     function random(max) {
         return ~~(Math.random() * max);
+    }
+
+    function resize() {
+        var w = window.innerWidth / canvas.width;
+        var h = window.innerHeight / canvas.height;
+        var scale = Math.min(h, w);
+        canvas.style.width = (canvas.width * scale) + 'px';
+        canvas.style.height = (canvas.height * scale) + 'px';
     }
 
     function reset() {
@@ -104,7 +106,7 @@
         // Draw player
         //ctx.fillStyle = '#0f0';
         for (i = 0, l = body.length; i < l; i += 1) {
-            body[i].drawImage(ctx, iBody);
+            ctx.drawImage(iBody, body[i].x, body[i].y);
         }
         
         // Draw walls
@@ -114,8 +116,9 @@
         //}
         
         // Draw food
-        food.drawImage(ctx, iFood);
+        ctx.drawImage(iFood, food.x, food.y);
 
+        
         // Draw score
         ctx.fillStyle = '#fff';
         ctx.fillText('Score: ' + score, 0, 10);
@@ -260,9 +263,10 @@
         //wall.push(new Rectangle(200, 100, 10, 10));
         
         // Start game
+        resize();
         run();
         repaint();
     }
-
+    window.addEventListener('resize', resize, false);
     window.addEventListener('load', init, false);
 }(window));
